@@ -36,3 +36,21 @@ class NoEncontradoError(AppError):
 
     def __init__(self, detalle: str, campo: str):
         super().__init__(detalle, "NOT-FOUND", detalle, campo)
+
+
+class NoAutorizadoError(AppError):
+    """HTTP 401 · AUTH-401: falta el token, es inválido o venció."""
+
+    status_code = 401
+
+    def __init__(self):
+        super().__init__("No autorizado.", "AUTH-401", "Token ausente, inválido o vencido.", "Authorization")
+
+
+class AccesoDenegadoError(AppError):
+    """HTTP 403 · AUTH-403: el rol del usuario no tiene permiso para la operación."""
+
+    status_code = 403
+
+    def __init__(self):
+        super().__init__("Acceso denegado.", "AUTH-403", "Su rol no tiene permiso para esta operación.", "rol")
