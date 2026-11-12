@@ -23,7 +23,20 @@ def base_limpia():
     yield
 
 
+def iniciar_sesion(c: TestClient, usuario: str, clave: str) -> str:
+    r = c.post("/api/v1/auth/login", json={"usuario": usuario, "clave": clave})
+    return r.json()["data"]["accessToken"]
+
+
 @pytest.fixture
 def client():
+    """Cliente autenticado como recepción (el rol que usan HU-001 y HU-002)."""
+    with TestClient(app) as c:
+        c.headers["Authorization"] = f"Bearer {iniciar_sesion(c, 'recepcion', 'Recepcion123*')}"
+        yield c
+
+
+@pytest.fixture
+def client_sin_token():
     with TestClient(app) as c:
         yield c
