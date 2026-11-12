@@ -28,3 +28,22 @@ uvicorn main:app --reload
 Abrir http://localhost:8000/docs y http://localhost:8000/health
 
 Cada integrante documenta la configuración de su entorno en `docs/entorno/`.
+
+## Autenticación (HT-02)
+
+Todos los endpoints de negocio exigen un token. Para obtenerlo:
+
+1. En Swagger (`/docs`), ejecuta **POST /api/v1/auth/login** con un usuario de prueba.
+2. Copia el `accessToken` de la respuesta.
+3. Pulsa **Authorize** (arriba a la derecha), pega el token y acepta.
+
+Usuarios que se crean solos la primera vez que arranca la API (solo para desarrollo):
+
+| Usuario | Clave | Rol |
+| --- | --- | --- |
+| admin | Admin123* | administrador |
+| recepcion | Recepcion123* | recepcion |
+| tecnico | Tecnico123* | tecnico |
+| inventario | Inventario123* | inventario |
+
+Sin token o con token vencido la API responde 401 (`AUTH-401`); con un rol sin permiso, 403 (`AUTH-403`).
