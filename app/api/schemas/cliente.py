@@ -50,3 +50,13 @@ class ClienteRegistrado(BaseModel):
     @field_serializer("fecha_registro")
     def _fecha_iso(self, valor: datetime) -> str:
         return a_iso_bogota(valor)
+
+
+class ClienteDetalle(ClienteRegistrado):
+    """data de la respuesta de HU-002: la ficha completa con su última modificación."""
+
+    fecha_modificacion: datetime | None = Field(default=None, serialization_alias="fechaModificacion")
+
+    @field_serializer("fecha_modificacion")
+    def _fecha_mod_iso(self, valor: datetime | None) -> str | None:
+        return a_iso_bogota(valor) if valor else None
