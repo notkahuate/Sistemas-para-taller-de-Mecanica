@@ -10,3 +10,6 @@ class IClienteRepository(ABC):
 
     @abstractmethod
     def crear(self, datos: dict) -> Cliente: ...
+
+    @abstractmethod
+    def obtener_por_id(self, id_cliente: str) -> Cliente | None: ...

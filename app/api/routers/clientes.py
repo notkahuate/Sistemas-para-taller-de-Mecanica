@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends
 
 from app.api.dependencies.clientes import get_cliente_service
-from app.api.schemas.cliente import ClienteCrear, ClienteRegistrado
+from app.api.schemas.cliente import ClienteCrear, ClienteDetalle, ClienteRegistrado
 from app.core.responses import envelope
 from app.services.cliente_service import ClienteService
 
@@ -19,3 +19,14 @@ def registrar_cliente(body: ClienteCrear, servicio: ClienteService = Depends(get
     cliente = servicio.registrar(body.model_dump())
     data = ClienteRegistrado.model_validate(cliente).model_dump(by_alias=True)
     return envelope(success=True, message="Cliente registrado correctamente", data=data, status_code=201)
+
+
+@router.get(
+    "/{id_cliente}",
+    summary="HU-002 Consultar cliente",
+    description="Devuelve la ficha de un cliente por su idCliente (formato CLI-NNNN). Incluye clientes inactivos.",
+)
+def consultar_cliente(id_cliente: str, servicio: ClienteService = Depends(get_cliente_service)):
+    cliente = servicio.consultar(id_cliente)
+    data = ClienteDetalle.model_validate(cliente).model_dump(by_alias=True)
+    return envelope(success=True, message="Consulta de cliente exitosa", data=data)
