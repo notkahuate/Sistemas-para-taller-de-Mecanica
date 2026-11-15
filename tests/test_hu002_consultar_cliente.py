@@ -76,3 +76,17 @@ def test_caso5_fallo_de_base_de_datos(client):
     cuerpo = r.json()
     assert cuerpo["success"] is False
     assert cuerpo["errors"][0]["codigo"] == "DB-DOWN"
+
+
+def test_cliente_inactivo_tambien_se_consulta(client):
+    from app.core.database import SessionLocal
+    from app.domain.models.cliente import ClienteModel
+
+    id_cliente = _registrar(client)
+    with SessionLocal() as db:
+        db.query(ClienteModel).filter_by(id_cliente=id_cliente).update({"estado": "inactivo"})
+        db.commit()
+
+    r = client.get(f"{URL}/{id_cliente}")
+    assert r.status_code == 200
+    assert r.json()["data"]["estado"] == "inactivo"
