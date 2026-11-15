@@ -39,3 +39,12 @@ def registrar_manejadores(app: FastAPI) -> None:
             errors=[{"campo": "persistencia", "codigo": "DB-DOWN", "detalle": "Base de datos no disponible"}],
             status_code=503,
         )
+
+    @app.exception_handler(Exception)
+    async def manejar_error_inesperado(_: Request, exc: Exception):
+        return envelope(
+            success=False,
+            message="Ocurrió un error inesperado en el servidor.",
+            errors=[{"campo": None, "codigo": "ERR-500", "detalle": "Error interno del servidor"}],
+            status_code=500,
+        )
