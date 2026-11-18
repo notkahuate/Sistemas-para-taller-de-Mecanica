@@ -50,3 +50,38 @@ class OrdenServicioRegistrada(BaseModel):
     @field_serializer("fecha_ingreso")
     def _fecha_iso(self, valor: datetime) -> str:
         return a_iso_bogota(valor)
+
+
+class TecnicoAsignar(BaseModel):
+    """Body de PATCH /api/v1/ordenes-servicio/{idOrden}/tecnico (HU-017)."""
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        extra="forbid",
+        json_schema_extra={
+            "example": {
+                "idTecnico": "TEC-0001",
+                "idEspecialidadRequerida": "ESP-FRE",
+                "fechaAsignacion": "2026-10-14T09:00:00-05:00",
+            }
+        },
+    )
+
+    id_tecnico: str = Field(alias="idTecnico")
+    id_especialidad_requerida: str | None = Field(default=None, alias="idEspecialidadRequerida")
+    fecha_asignacion: datetime = Field(alias="fechaAsignacion")
+
+
+class AsignacionTecnico(BaseModel):
+    """data de la respuesta de HU-017."""
+
+    id_orden: str = Field(serialization_alias="idOrden")
+    id_tecnico: str = Field(serialization_alias="idTecnico")
+    nombre_tecnico: str = Field(serialization_alias="nombreTecnico")
+    id_especialidad_requerida: str | None = Field(serialization_alias="idEspecialidadRequerida")
+    estado: str
+    fecha_asignacion: datetime = Field(serialization_alias="fechaAsignacion")
+
+    @field_serializer("fecha_asignacion")
+    def _fecha_iso(self, valor: datetime) -> str:
+        return a_iso_bogota(valor)

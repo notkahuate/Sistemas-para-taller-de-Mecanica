@@ -20,3 +20,6 @@ class OrdenServicioModel(Base):
     fecha_ingreso: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     observaciones: Mapped[str | None] = mapped_column(String(500), nullable=True)
     id_tecnico: Mapped[str | None] = mapped_column(String(12), nullable=True)
+    # HU-017: datos de la asignación del técnico.
+    id_especialidad_requerida: Mapped[str | None] = mapped_column(String(12), nullable=True)
+    fecha_asignacion: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

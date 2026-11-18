@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 
 from app.api.dependencies.auth import requiere_rol
 from app.api.dependencies.ordenes_servicio import get_orden_servicio_service
-from app.api.schemas.orden_servicio import OrdenServicioCrear, OrdenServicioRegistrada
+from app.api.schemas.orden_servicio import AsignacionTecnico, OrdenServicioCrear, OrdenServicioRegistrada, TecnicoAsignar
 from app.core.responses import envelope
 from app.domain.entities.usuario import ROL_ADMINISTRADOR, ROL_RECEPCION
 from app.services.orden_servicio_service import OrdenServicioService
@@ -25,3 +25,30 @@ def registrar_orden(body: OrdenServicioCrear, servicio: OrdenServicioService = D
     orden = servicio.registrar(body.model_dump())
     data = OrdenServicioRegistrada.model_validate(orden).model_dump(by_alias=True)
     return envelope(success=True, message="Orden de servicio registrada correctamente", data=data, status_code=201)
+
+
+@router.patch(
+    "/{idOrden}/tecnico",
+    summary="HU-017 Asignar técnico a la orden",
+    description=(
+        "Asigna un técnico activo a una orden recibida o en proceso y la deja en en_proceso. "
+        "Si la orden está finalizada responde 409 RN-02; si el técnico no está activo, 409 RN-06. "
+        "En el MVP RN-06 solo valida que el técnico esté activo; especialidad y disponibilidad quedan para v2."
+    ),
+    dependencies=[Depends(requiere_rol(ROL_RECEPCION, ROL_ADMINISTRADOR))],
+)
+def asignar_tecnico(
+    idOrden: str,  # noqa: N803  (el contrato usa camelCase en la ruta)
+    body: TecnicoAsignar,
+    servicio: OrdenServicioService = Depends(get_orden_servicio_service),
+):
+    orden, tecnico = servicio.asignar_tecnico(idOrden, body.model_dump())
+    data = AsignacionTecnico(
+        id_orden=orden.id_orden,
+        id_tecnico=orden.id_tecnico,
+        nombre_tecnico=tecnico.nombre_completo,
+        id_especialidad_requerida=orden.id_especialidad_requerida,
+        estado=orden.estado,
+        fecha_asignacion=orden.fecha_asignacion,
+    ).model_dump(by_alias=True)
+    return envelope(success=True, message="Técnico asignado a la orden correctamente", data=data)
