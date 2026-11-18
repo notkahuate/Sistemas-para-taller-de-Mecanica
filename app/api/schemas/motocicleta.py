@@ -47,3 +47,19 @@ class MotocicletaRegistrada(BaseModel):
     color: str
     id_cliente: str = Field(serialization_alias="idCliente")
     estado: str
+
+
+class MotocicletaDetalle(BaseModel):
+    """data de la respuesta de HU-007: la motocicleta con el nombre de su propietario."""
+
+    id_motocicleta: str = Field(serialization_alias="idMotocicleta")
+    placa: str
+    vin: str | None
+    marca: str
+    linea: str
+    anio: int
+    cilindraje: int
+    color: str
+    id_cliente: str = Field(serialization_alias="idCliente")
+    nombre_propietario: str | None = Field(serialization_alias="nombrePropietario")
+    estado: str
