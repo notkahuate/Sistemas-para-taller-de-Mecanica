@@ -10,3 +10,6 @@ class IRepuestoRepository(ABC):
 
     @abstractmethod
     def crear(self, datos: dict) -> Repuesto: ...
+
+    @abstractmethod
+    def obtener_por_referencia(self, referencia: str) -> Repuesto | None: ...
