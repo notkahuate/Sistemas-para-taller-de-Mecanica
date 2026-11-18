@@ -10,3 +10,6 @@ class IMotocicletaRepository(ABC):
 
     @abstractmethod
     def crear(self, datos: dict) -> Motocicleta: ...
+
+    @abstractmethod
+    def obtener_por_id(self, id_motocicleta: str) -> Motocicleta | None: ...

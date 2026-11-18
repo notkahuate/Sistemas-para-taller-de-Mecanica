@@ -42,3 +42,7 @@ class MotocicletaRepository(IMotocicletaRepository):
             raise
         self.db.refresh(modelo)
         return a_entidad(modelo)
+
+    def obtener_por_id(self, id_motocicleta: str) -> Motocicleta | None:
+        modelo = self.db.scalar(select(MotocicletaModel).where(MotocicletaModel.id_motocicleta == id_motocicleta))
+        return a_entidad(modelo) if modelo else None
