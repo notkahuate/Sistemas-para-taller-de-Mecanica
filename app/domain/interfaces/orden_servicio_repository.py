@@ -10,3 +10,9 @@ class IOrdenServicioRepository(ABC):
 
     @abstractmethod
     def crear(self, datos: dict) -> OrdenServicio: ...
+
+    @abstractmethod
+    def obtener_por_id(self, id_orden: str) -> OrdenServicio | None: ...
+
+    @abstractmethod
+    def asignar_tecnico(self, id_orden: str, datos: dict) -> OrdenServicio: ...
