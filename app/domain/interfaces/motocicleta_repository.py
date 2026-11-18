@@ -13,3 +13,6 @@ class IMotocicletaRepository(ABC):
 
     @abstractmethod
     def obtener_por_id(self, id_motocicleta: str) -> Motocicleta | None: ...
+
+    @abstractmethod
+    def obtener_por_placa(self, placa: str) -> Motocicleta | None: ...
