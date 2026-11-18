@@ -34,8 +34,8 @@ class NoEncontradoError(AppError):
 
     status_code = 404
 
-    def __init__(self, detalle: str, campo: str):
-        super().__init__(detalle, "NOT-FOUND", detalle, campo)
+    def __init__(self, detalle: str, campo: str, message: str | None = None):
+        super().__init__(message or detalle, "NOT-FOUND", detalle, campo)
 
 
 class NoAutorizadoError(AppError):
