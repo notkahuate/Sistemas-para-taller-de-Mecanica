@@ -43,3 +43,8 @@ class RepuestoRepository(IRepuestoRepository):
             raise
         self.db.refresh(modelo)
         return a_entidad(modelo)
+
+    def obtener_por_referencia(self, referencia: str) -> Repuesto | None:
+        consulta = select(RepuestoModel).where(func.upper(RepuestoModel.referencia) == referencia.upper())
+        modelo = self.db.scalar(consulta)
+        return a_entidad(modelo) if modelo else None
