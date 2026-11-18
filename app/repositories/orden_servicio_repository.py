@@ -18,6 +18,8 @@ def a_entidad(m: OrdenServicioModel) -> OrdenServicio:
         fecha_ingreso=m.fecha_ingreso,
         observaciones=m.observaciones,
         id_tecnico=m.id_tecnico,
+        id_especialidad_requerida=m.id_especialidad_requerida,
+        fecha_asignacion=m.fecha_asignacion,
     )
 
 
@@ -38,6 +40,23 @@ class OrdenServicioRepository(IOrdenServicioRepository):
         try:
             self.db.flush()  # obtiene la secuencia para armar el idOrden
             modelo.id_orden = generar_id_orden(modelo.secuencia)
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
+        self.db.refresh(modelo)
+        return a_entidad(modelo)
+
+    def obtener_por_id(self, id_orden: str) -> OrdenServicio | None:
+        modelo = self.db.scalar(select(OrdenServicioModel).where(OrdenServicioModel.id_orden == id_orden))
+        return a_entidad(modelo) if modelo else None
+
+    def asignar_tecnico(self, id_orden: str, datos: dict) -> OrdenServicio:
+        """Guarda idTecnico, idEspecialidadRequerida, fechaAsignacion y el nuevo estado de la orden."""
+        modelo = self.db.scalar(select(OrdenServicioModel).where(OrdenServicioModel.id_orden == id_orden))
+        try:
+            for campo, valor in datos.items():
+                setattr(modelo, campo, valor)
             self.db.commit()
         except Exception:
             self.db.rollback()

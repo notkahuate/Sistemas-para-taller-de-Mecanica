@@ -9,6 +9,8 @@ ESTADO_FINALIZADA = "finalizada"
 ESTADOS_ABIERTOS = (ESTADO_RECIBIDA, ESTADO_EN_PROCESO)
 
 ID_MOTOCICLETA_RE = re.compile(r"^MTO-\d{4}$")
+ID_ORDEN_RE = re.compile(r"^OS-\d{4}$")
+ID_ESPECIALIDAD_RE = re.compile(r"^ESP-[A-Z]{3}$")
 
 
 @dataclass
@@ -22,6 +24,8 @@ class OrdenServicio:
     fecha_ingreso: datetime
     observaciones: str | None
     id_tecnico: str | None
+    id_especialidad_requerida: str | None = None
+    fecha_asignacion: datetime | None = None
 
 
 def generar_id_orden(secuencia: int) -> str:
