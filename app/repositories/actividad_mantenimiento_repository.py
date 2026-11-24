@@ -1,4 +1,5 @@
 """Repositorio de actividades de mantenimiento: único lugar que lee y escribe la tabla actividades_mantenimiento."""
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.domain.entities.actividad_mantenimiento import ActividadMantenimiento, generar_id_actividad
@@ -35,3 +36,7 @@ class ActividadMantenimientoRepository(IActividadMantenimientoRepository):
             raise
         self.db.refresh(modelo)
         return a_entidad(modelo)
+
+    def contar_por_orden(self, id_orden: str) -> int:
+        consulta = select(func.count()).where(ActividadMantenimientoModel.id_orden == id_orden)
+        return self.db.scalar(consulta) or 0

@@ -26,6 +26,7 @@ class OrdenServicio:
     id_tecnico: str | None
     id_especialidad_requerida: str | None = None
     fecha_asignacion: datetime | None = None
+    fecha_cierre: datetime | None = None
 
 
 def generar_id_orden(secuencia: int) -> str:

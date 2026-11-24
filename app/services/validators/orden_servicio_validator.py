@@ -1,4 +1,4 @@
-"""Validaciones de formato de una orden de servicio (FUN-16 y FUN-17)."""
+"""Validaciones de formato de una orden de servicio (FUN-16, FUN-17 y FUN-18)."""
 from app.domain.entities.cliente import ID_CLIENTE_RE
 from app.domain.entities.orden_servicio import ID_ESPECIALIDAD_RE, ID_MOTOCICLETA_RE, ID_ORDEN_RE
 from app.domain.entities.tecnico import ID_TECNICO_RE
@@ -35,3 +35,10 @@ def validar_formato_asignacion(id_orden: str, datos: dict) -> list[tuple[str, st
     if datos["fecha_asignacion"].tzinfo is None:
         errores.append(("fechaAsignacion", "VAL-FORMATO", "fechaAsignacion debe incluir el offset, por ejemplo -05:00."))
     return errores
+
+
+def validar_formato_consulta(id_orden: str) -> list[tuple[str, str, str]]:
+    """HU-018: el idOrden de la ruta debe tener formato OS-NNNN."""
+    if not ID_ORDEN_RE.match(id_orden):
+        return [("idOrden", "VAL-FORMATO", "IdOrden mal formado (debe OS-NNNN)")]
+    return []

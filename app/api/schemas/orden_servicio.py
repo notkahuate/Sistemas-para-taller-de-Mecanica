@@ -85,3 +85,28 @@ class AsignacionTecnico(BaseModel):
     @field_serializer("fecha_asignacion")
     def _fecha_iso(self, valor: datetime) -> str:
         return a_iso_bogota(valor)
+
+
+class EstadoOrden(BaseModel):
+    """data de la respuesta de HU-018 Consultar estado de la orden."""
+
+    id_orden: str = Field(serialization_alias="idOrden")
+    id_cliente: str = Field(serialization_alias="idCliente")
+    id_motocicleta: str = Field(serialization_alias="idMotocicleta")
+    placa: str | None
+    estado: str
+    id_tecnico: str | None = Field(serialization_alias="idTecnico")
+    motivo_visita: str = Field(serialization_alias="motivoVisita")
+    fecha_ingreso: datetime = Field(serialization_alias="fechaIngreso")
+    fecha_cierre: datetime | None = Field(serialization_alias="fechaCierre")
+    tiene_diagnostico: bool = Field(serialization_alias="tieneDiagnostico")
+    actividades_registradas: int = Field(serialization_alias="actividadesRegistradas")
+    repuestos_consumidos: int = Field(serialization_alias="repuestosConsumidos")
+
+    @field_serializer("fecha_ingreso")
+    def _fecha_ingreso(self, valor: datetime) -> str:
+        return a_iso_bogota(valor)
+
+    @field_serializer("fecha_cierre")
+    def _fecha_cierre(self, valor: datetime | None) -> str | None:
+        return a_iso_bogota(valor) if valor else None
