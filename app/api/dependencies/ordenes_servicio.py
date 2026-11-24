@@ -14,7 +14,11 @@ from app.services.orden_servicio_service import OrdenServicioService
 
 def get_orden_servicio_service(db: Session = Depends(get_db)) -> OrdenServicioService:
     return OrdenServicioService(
-        OrdenServicioRepository(db), ClienteRepository(db), MotocicletaRepository(db), TecnicoRepository(db)
+        OrdenServicioRepository(db),
+        ClienteRepository(db),
+        MotocicletaRepository(db),
+        TecnicoRepository(db),
+        ActividadMantenimientoRepository(db),
     )
 
 

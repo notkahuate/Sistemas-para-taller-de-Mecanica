@@ -5,15 +5,22 @@ from app.domain.entities.orden_servicio import ESTADO_EN_PROCESO, ESTADO_FINALIZ
 from app.domain.entities.tecnico import ESTADO_ACTIVO as TECNICO_ACTIVO
 from app.domain.entities.tecnico import Tecnico
 from app.domain.exceptions.errors import AppError, NoEncontradoError, ReglaNegocioError
+from app.domain.interfaces.actividad_mantenimiento_repository import IActividadMantenimientoRepository
 from app.domain.interfaces.cliente_repository import IClienteRepository
 from app.domain.interfaces.motocicleta_repository import IMotocicletaRepository
 from app.domain.interfaces.orden_servicio_repository import IOrdenServicioRepository
 from app.domain.interfaces.tecnico_repository import ITecnicoRepository
-from app.services.validators.orden_servicio_validator import validar_formato_asignacion, validar_formato_orden
+from app.services.validators.orden_servicio_validator import (
+    validar_formato_asignacion,
+    validar_formato_consulta,
+    validar_formato_orden,
+)
 
 MSG_DATOS_INVALIDOS = "No fue posible completar «Registrar orden de servicio»: los datos enviados no son válidos."
 MSG_REGLA_NEGOCIO = "No fue posible completar «Registrar orden de servicio»: la operación viola una regla de negocio."
 MSG_ASIGNAR_DATOS_INVALIDOS = "No fue posible completar «Asignar técnico a la orden»: los datos enviados no son válidos."
+MSG_CONSULTA_DATOS_INVALIDOS = "No fue posible completar «Consultar estado de la orden»: los datos enviados no son válidos."
+MSG_CONSULTA_NO_EXISTE = "No fue posible completar «Consultar estado de la orden»: no existe el recurso indicado."
 MSG_ASIGNAR_REGLA_NEGOCIO = "No fue posible completar «Asignar técnico a la orden»: la operación viola una regla de negocio."
 
 
@@ -28,11 +35,13 @@ class OrdenServicioService:
         clientes: IClienteRepository,
         motocicletas: IMotocicletaRepository,
         tecnicos: ITecnicoRepository,
+        actividades: IActividadMantenimientoRepository | None = None,
     ):
         self.repositorio = repositorio
         self.clientes = clientes
         self.motocicletas = motocicletas
         self.tecnicos = tecnicos
+        self.actividades = actividades
 
     def registrar(self, datos: dict) -> OrdenServicio:
         """HU-016 Registrar orden de servicio."""
@@ -94,3 +103,25 @@ class OrdenServicioService:
             "estado": ESTADO_EN_PROCESO,
         }
         return self.repositorio.asignar_tecnico(id_orden, cambios), tecnico
+
+    def consultar(self, id_orden: str) -> dict:
+        """HU-018 Consultar estado de la orden: estado y resumen de avance."""
+        errores = validar_formato_consulta(id_orden)
+        if errores:
+            campo, codigo, detalle = errores[0]
+            raise DatosOrdenInvalidosError(MSG_CONSULTA_DATOS_INVALIDOS, codigo, detalle, campo)
+
+        orden = self.repositorio.obtener_por_id(id_orden)
+        if orden is None:
+            raise NoEncontradoError("Orden inexistente", "idOrden", MSG_CONSULTA_NO_EXISTE)
+        motocicleta = self.motocicletas.obtener_por_id(orden.id_motocicleta)
+
+        return {
+            "orden": orden,
+            "placa": motocicleta.placa if motocicleta else None,
+            # Diagnóstico (HU-021) y repuestos consumidos (HU-027) aún no están en develop: se
+            # informan en false/0 hasta que esas historias agreguen su repositorio aquí.
+            "tiene_diagnostico": False,
+            "actividades_registradas": self.actividades.contar_por_orden(orden.id_orden) if self.actividades else 0,
+            "repuestos_consumidos": 0,
+        }
