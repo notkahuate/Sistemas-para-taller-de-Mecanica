@@ -4,7 +4,13 @@ from fastapi import APIRouter, Depends
 from app.api.dependencies.auth import requiere_rol
 from app.api.dependencies.ordenes_servicio import get_actividad_service, get_orden_servicio_service
 from app.api.schemas.actividad_mantenimiento import ActividadCrear, ActividadRegistrada
-from app.api.schemas.orden_servicio import AsignacionTecnico, OrdenServicioCrear, OrdenServicioRegistrada, TecnicoAsignar
+from app.api.schemas.orden_servicio import (
+    AsignacionTecnico,
+    EstadoOrden,
+    OrdenServicioCrear,
+    OrdenServicioRegistrada,
+    TecnicoAsignar,
+)
 from app.core.responses import envelope
 from app.domain.entities.usuario import ROL_ADMINISTRADOR, ROL_RECEPCION, ROL_TECNICO
 from app.services.actividad_mantenimiento_service import ActividadMantenimientoService
@@ -74,3 +80,35 @@ def registrar_actividad(
     actividad = servicio.registrar(idOrden, body.model_dump())
     data = ActividadRegistrada.model_validate(actividad).model_dump(by_alias=True)
     return envelope(success=True, message="Actividad de mantenimiento registrada correctamente", data=data, status_code=201)
+
+
+@router.get(
+    "/{idOrden}",
+    summary="HU-018 Consultar estado de la orden",
+    description=(
+        "Devuelve el estado de la orden (recibida, en_proceso o finalizada) y el resumen de avance: "
+        "técnico asignado, actividades registradas, diagnóstico y repuestos consumidos."
+    ),
+    dependencies=[Depends(requiere_rol(ROL_RECEPCION, ROL_TECNICO, ROL_ADMINISTRADOR))],
+)
+def consultar_orden(
+    idOrden: str,  # noqa: N803  (el contrato usa camelCase en la ruta)
+    servicio: OrdenServicioService = Depends(get_orden_servicio_service),
+):
+    r = servicio.consultar(idOrden)
+    o = r["orden"]
+    data = EstadoOrden(
+        id_orden=o.id_orden,
+        id_cliente=o.id_cliente,
+        id_motocicleta=o.id_motocicleta,
+        placa=r["placa"],
+        estado=o.estado,
+        id_tecnico=o.id_tecnico,
+        motivo_visita=o.motivo_visita,
+        fecha_ingreso=o.fecha_ingreso,
+        fecha_cierre=o.fecha_cierre,
+        tiene_diagnostico=r["tiene_diagnostico"],
+        actividades_registradas=r["actividades_registradas"],
+        repuestos_consumidos=r["repuestos_consumidos"],
+    ).model_dump(by_alias=True)
+    return envelope(success=True, message="Consulta de orden de servicio exitosa", data=data)

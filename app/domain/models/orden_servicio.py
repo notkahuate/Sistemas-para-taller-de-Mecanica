@@ -23,3 +23,5 @@ class OrdenServicioModel(Base):
     # HU-017: datos de la asignación del técnico.
     id_especialidad_requerida: Mapped[str | None] = mapped_column(String(12), nullable=True)
     fecha_asignacion: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # HU-018 la expone; la llena el cierre de la orden (HU-020).
+    fecha_cierre: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

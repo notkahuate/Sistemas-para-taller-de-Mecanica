@@ -20,6 +20,7 @@ def a_entidad(m: OrdenServicioModel) -> OrdenServicio:
         id_tecnico=m.id_tecnico,
         id_especialidad_requerida=m.id_especialidad_requerida,
         fecha_asignacion=m.fecha_asignacion,
+        fecha_cierre=m.fecha_cierre,
     )
 
 
