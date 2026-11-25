@@ -1,6 +1,7 @@
 """Modelos de base de datos. Importarlos aquí registra sus tablas en Base.metadata."""
 from app.domain.models.actividad_mantenimiento import ActividadMantenimientoModel  # noqa: F401
 from app.domain.models.cliente import ClienteModel  # noqa: F401
+from app.domain.models.consumo_repuesto import ConsumoRepuestoModel  # noqa: F401
 from app.domain.models.diagnostico_tecnico import DiagnosticoTecnicoModel  # noqa: F401
 from app.domain.models.motocicleta import MotocicletaModel  # noqa: F401
 from app.domain.models.movimiento_inventario import MovimientoInventarioModel  # noqa: F401

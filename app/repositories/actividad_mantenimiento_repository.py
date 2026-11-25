@@ -40,3 +40,9 @@ class ActividadMantenimientoRepository(IActividadMantenimientoRepository):
     def contar_por_orden(self, id_orden: str) -> int:
         consulta = select(func.count()).where(ActividadMantenimientoModel.id_orden == id_orden)
         return self.db.scalar(consulta) or 0
+
+    def obtener_por_id(self, id_actividad: str) -> ActividadMantenimiento | None:
+        modelo = self.db.scalar(
+            select(ActividadMantenimientoModel).where(ActividadMantenimientoModel.id_actividad == id_actividad)
+        )
+        return a_entidad(modelo) if modelo else None
