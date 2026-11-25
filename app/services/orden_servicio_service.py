@@ -7,6 +7,7 @@ from app.domain.entities.tecnico import Tecnico
 from app.domain.exceptions.errors import AppError, NoEncontradoError, ReglaNegocioError
 from app.domain.interfaces.actividad_mantenimiento_repository import IActividadMantenimientoRepository
 from app.domain.interfaces.cliente_repository import IClienteRepository
+from app.domain.interfaces.diagnostico_tecnico_repository import IDiagnosticoTecnicoRepository
 from app.domain.interfaces.motocicleta_repository import IMotocicletaRepository
 from app.domain.interfaces.orden_servicio_repository import IOrdenServicioRepository
 from app.domain.interfaces.tecnico_repository import ITecnicoRepository
@@ -36,12 +37,14 @@ class OrdenServicioService:
         motocicletas: IMotocicletaRepository,
         tecnicos: ITecnicoRepository,
         actividades: IActividadMantenimientoRepository | None = None,
+        diagnosticos: IDiagnosticoTecnicoRepository | None = None,
     ):
         self.repositorio = repositorio
         self.clientes = clientes
         self.motocicletas = motocicletas
         self.tecnicos = tecnicos
         self.actividades = actividades
+        self.diagnosticos = diagnosticos
 
     def registrar(self, datos: dict) -> OrdenServicio:
         """HU-016 Registrar orden de servicio."""
@@ -119,9 +122,9 @@ class OrdenServicioService:
         return {
             "orden": orden,
             "placa": motocicleta.placa if motocicleta else None,
-            # Diagnóstico (HU-021) y repuestos consumidos (HU-027) aún no están en develop: se
-            # informan en false/0 hasta que esas historias agreguen su repositorio aquí.
-            "tiene_diagnostico": False,
+            "tiene_diagnostico": self.diagnosticos.tiene_vigente(orden.id_orden) if self.diagnosticos else False,
+            # Repuestos consumidos (HU-027) aún no está en develop: se informa en 0 hasta que
+            # esa historia agregue su repositorio aquí.
             "actividades_registradas": self.actividades.contar_por_orden(orden.id_orden) if self.actividades else 0,
             "repuestos_consumidos": 0,
         }
