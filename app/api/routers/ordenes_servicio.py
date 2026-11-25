@@ -2,8 +2,13 @@
 from fastapi import APIRouter, Depends
 
 from app.api.dependencies.auth import requiere_rol
-from app.api.dependencies.ordenes_servicio import get_actividad_service, get_orden_servicio_service
+from app.api.dependencies.ordenes_servicio import (
+    get_actividad_service,
+    get_diagnostico_service,
+    get_orden_servicio_service,
+)
 from app.api.schemas.actividad_mantenimiento import ActividadCrear, ActividadRegistrada
+from app.api.schemas.diagnostico_tecnico import DiagnosticoCrear, DiagnosticoRegistrado
 from app.api.schemas.orden_servicio import (
     AsignacionTecnico,
     EstadoOrden,
@@ -14,6 +19,7 @@ from app.api.schemas.orden_servicio import (
 from app.core.responses import envelope
 from app.domain.entities.usuario import ROL_ADMINISTRADOR, ROL_RECEPCION, ROL_TECNICO
 from app.services.actividad_mantenimiento_service import ActividadMantenimientoService
+from app.services.diagnostico_tecnico_service import DiagnosticoTecnicoService
 from app.services.orden_servicio_service import OrdenServicioService
 
 router = APIRouter(prefix="/api/v1/ordenes-servicio", tags=["MOD-02 Órdenes de servicio"])
@@ -112,3 +118,23 @@ def consultar_orden(
         repuestos_consumidos=r["repuestos_consumidos"],
     ).model_dump(by_alias=True)
     return envelope(success=True, message="Consulta de orden de servicio exitosa", data=data)
+
+
+@router.post(
+    "/{idOrden}/diagnosticos",
+    status_code=201,
+    summary="HU-021 Registrar diagnóstico técnico",
+    description=(
+        "Registra el diagnóstico técnico de una orden en_proceso: hallazgos, pruebas y diagnóstico "
+        "(mínimo 15 caracteres cada uno) y recomendaciones. Una orden admite un solo diagnóstico vigente."
+    ),
+    dependencies=[Depends(requiere_rol(ROL_TECNICO, ROL_ADMINISTRADOR))],
+)
+def registrar_diagnostico(
+    idOrden: str,  # noqa: N803  (el contrato usa camelCase en la ruta)
+    body: DiagnosticoCrear,
+    servicio: DiagnosticoTecnicoService = Depends(get_diagnostico_service),
+):
+    diagnostico = servicio.registrar(idOrden, body.model_dump())
+    data = DiagnosticoRegistrado.model_validate(diagnostico).model_dump(by_alias=True)
+    return envelope(success=True, message="Diagnóstico técnico registrado correctamente", data=data, status_code=201)
