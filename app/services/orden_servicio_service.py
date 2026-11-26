@@ -7,6 +7,7 @@ from app.domain.entities.tecnico import Tecnico
 from app.domain.exceptions.errors import AppError, NoEncontradoError, ReglaNegocioError
 from app.domain.interfaces.actividad_mantenimiento_repository import IActividadMantenimientoRepository
 from app.domain.interfaces.cliente_repository import IClienteRepository
+from app.domain.interfaces.consumo_repuesto_repository import IConsumoRepuestoRepository
 from app.domain.interfaces.diagnostico_tecnico_repository import IDiagnosticoTecnicoRepository
 from app.domain.interfaces.motocicleta_repository import IMotocicletaRepository
 from app.domain.interfaces.orden_servicio_repository import IOrdenServicioRepository
@@ -38,6 +39,7 @@ class OrdenServicioService:
         tecnicos: ITecnicoRepository,
         actividades: IActividadMantenimientoRepository | None = None,
         diagnosticos: IDiagnosticoTecnicoRepository | None = None,
+        consumos: IConsumoRepuestoRepository | None = None,
     ):
         self.repositorio = repositorio
         self.clientes = clientes
@@ -45,6 +47,7 @@ class OrdenServicioService:
         self.tecnicos = tecnicos
         self.actividades = actividades
         self.diagnosticos = diagnosticos
+        self.consumos = consumos
 
     def registrar(self, datos: dict) -> OrdenServicio:
         """HU-016 Registrar orden de servicio."""
@@ -123,8 +126,7 @@ class OrdenServicioService:
             "orden": orden,
             "placa": motocicleta.placa if motocicleta else None,
             "tiene_diagnostico": self.diagnosticos.tiene_vigente(orden.id_orden) if self.diagnosticos else False,
-            # Repuestos consumidos (HU-027) aún no está en develop: se informa en 0 hasta que
-            # esa historia agregue su repositorio aquí.
+
             "actividades_registradas": self.actividades.contar_por_orden(orden.id_orden) if self.actividades else 0,
-            "repuestos_consumidos": 0,
+            "repuestos_consumidos": self.consumos.contar_por_orden(orden.id_orden) if self.consumos else 0,
         }

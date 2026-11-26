@@ -4,10 +4,12 @@ from fastapi import APIRouter, Depends
 from app.api.dependencies.auth import requiere_rol
 from app.api.dependencies.ordenes_servicio import (
     get_actividad_service,
+    get_consumo_service,
     get_diagnostico_service,
     get_orden_servicio_service,
 )
 from app.api.schemas.actividad_mantenimiento import ActividadCrear, ActividadRegistrada
+from app.api.schemas.consumo_repuesto import ConsumoCrear, ConsumoRegistrado
 from app.api.schemas.diagnostico_tecnico import DiagnosticoCrear, DiagnosticoRegistrado
 from app.api.schemas.orden_servicio import (
     AsignacionTecnico,
@@ -19,6 +21,7 @@ from app.api.schemas.orden_servicio import (
 from app.core.responses import envelope
 from app.domain.entities.usuario import ROL_ADMINISTRADOR, ROL_RECEPCION, ROL_TECNICO
 from app.services.actividad_mantenimiento_service import ActividadMantenimientoService
+from app.services.consumo_repuesto_service import ConsumoRepuestoService
 from app.services.diagnostico_tecnico_service import DiagnosticoTecnicoService
 from app.services.orden_servicio_service import OrdenServicioService
 
@@ -138,3 +141,23 @@ def registrar_diagnostico(
     diagnostico = servicio.registrar(idOrden, body.model_dump())
     data = DiagnosticoRegistrado.model_validate(diagnostico).model_dump(by_alias=True)
     return envelope(success=True, message="Diagnóstico técnico registrado correctamente", data=data, status_code=201)
+
+
+@router.post(
+    "/{idOrden}/repuestos-utilizados",
+    status_code=201,
+    summary="HU-027 Registrar repuestos utilizados",
+    description=(
+        "Asocia referencia y cantidad a una actividad de la orden en_proceso, descuenta el stock con un movimiento "
+        "SALIDA motivo consumo_orden y devuelve el saldo. Si el stock no alcanza responde 409 RN-03."
+    ),
+)
+def registrar_repuestos_utilizados(
+    idOrden: str,  # noqa: N803  (el contrato usa camelCase en la ruta)
+    body: ConsumoCrear,
+    usuario: dict = Depends(requiere_rol(ROL_TECNICO, ROL_ADMINISTRADOR)),
+    servicio: ConsumoRepuestoService = Depends(get_consumo_service),
+):
+    consumo = servicio.registrar(idOrden, body.model_dump(), usuario["usuario"])
+    data = ConsumoRegistrado.model_validate(consumo).model_dump(by_alias=True)
+    return envelope(success=True, message="Repuestos utilizados registrados correctamente", data=data, status_code=201)
