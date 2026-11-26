@@ -1,4 +1,6 @@
 """Repositorio de repuestos consumidos: guarda el consumo y su salida de inventario juntos."""
+from decimal import Decimal
+
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -50,3 +52,9 @@ class ConsumoRepuestoRepository(IConsumoRepuestoRepository):
     def contar_por_orden(self, id_orden: str) -> int:
         consulta = select(func.count()).where(ConsumoRepuestoModel.id_orden == id_orden)
         return self.db.scalar(consulta) or 0
+
+    def total_repuestos(self, id_orden: str) -> Decimal:
+        consulta = select(
+            func.coalesce(func.sum(ConsumoRepuestoModel.cantidad * ConsumoRepuestoModel.precio_unitario), 0)
+        ).where(ConsumoRepuestoModel.id_orden == id_orden)
+        return Decimal(str(self.db.scalar(consulta)))

@@ -1,5 +1,6 @@
 """Contratos JSON de órdenes de servicio (camelCase, como en el Parcial #2)."""
 from datetime import datetime
+from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
@@ -110,3 +111,48 @@ class EstadoOrden(BaseModel):
     @field_serializer("fecha_cierre")
     def _fecha_cierre(self, valor: datetime | None) -> str | None:
         return a_iso_bogota(valor) if valor else None
+
+
+class OrdenCerrar(BaseModel):
+    """Body de POST /api/v1/ordenes-servicio/{idOrden}/cerrar (HU-020)."""
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        extra="forbid",
+        json_schema_extra={"example": {"confirmarCierre": True, "notificarCliente": True}},
+    )
+
+    confirmar_cierre: bool = Field(alias="confirmarCierre", strict=True)
+    notificar_cliente: bool = Field(alias="notificarCliente", strict=True)
+
+
+def _dinero(valor: Decimal) -> float:
+    return float(valor.quantize(Decimal("0.01")))
+
+
+class TotalesCierre(BaseModel):
+    mano_obra: Decimal = Field(serialization_alias="manoObra")
+    repuestos: Decimal
+    subtotal: Decimal
+    impuestos: Decimal
+    descuentos: Decimal
+    total: Decimal
+
+    @field_serializer("mano_obra", "repuestos", "subtotal", "impuestos", "descuentos", "total")
+    def _montos(self, valor: Decimal) -> float:
+        return _dinero(valor)
+
+
+class OrdenCerrada(BaseModel):
+    """data de la respuesta de HU-020."""
+
+    id_orden: str = Field(serialization_alias="idOrden")
+    estado: str
+    fecha_cierre: datetime = Field(serialization_alias="fechaCierre")
+    totales: TotalesCierre
+    id_factura: str = Field(serialization_alias="idFactura")
+    notificacion_cliente: str = Field(serialization_alias="notificacionCliente")
+
+    @field_serializer("fecha_cierre")
+    def _fecha(self, valor: datetime) -> str:
+        return a_iso_bogota(valor)
