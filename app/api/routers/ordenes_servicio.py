@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends
 from app.api.dependencies.auth import requiere_rol
 from app.api.dependencies.ordenes_servicio import (
     get_actividad_service,
+    get_cierre_service,
     get_consumo_service,
     get_diagnostico_service,
     get_orden_servicio_service,
@@ -14,6 +15,8 @@ from app.api.schemas.diagnostico_tecnico import DiagnosticoCrear, DiagnosticoReg
 from app.api.schemas.orden_servicio import (
     AsignacionTecnico,
     EstadoOrden,
+    OrdenCerrada,
+    OrdenCerrar,
     OrdenServicioCrear,
     OrdenServicioRegistrada,
     TecnicoAsignar,
@@ -21,6 +24,7 @@ from app.api.schemas.orden_servicio import (
 from app.core.responses import envelope
 from app.domain.entities.usuario import ROL_ADMINISTRADOR, ROL_RECEPCION, ROL_TECNICO
 from app.services.actividad_mantenimiento_service import ActividadMantenimientoService
+from app.services.cierre_orden_service import CierreOrdenService
 from app.services.consumo_repuesto_service import ConsumoRepuestoService
 from app.services.diagnostico_tecnico_service import DiagnosticoTecnicoService
 from app.services.orden_servicio_service import OrdenServicioService
@@ -161,3 +165,38 @@ def registrar_repuestos_utilizados(
     consumo = servicio.registrar(idOrden, body.model_dump(), usuario["usuario"])
     data = ConsumoRegistrado.model_validate(consumo).model_dump(by_alias=True)
     return envelope(success=True, message="Repuestos utilizados registrados correctamente", data=data, status_code=201)
+
+
+@router.post(
+    "/{idOrden}/cerrar",
+    summary="HU-020 Cerrar y facturar orden de servicio",
+    description=(
+        "Valida diagnóstico y al menos una actividad completada, calcula mano de obra (HU-030) + repuestos (HU-027) "
+        "+ IVA 19%, pasa la orden a finalizada y genera su factura en estado emitida (RN-05). "
+        "La notificación al cliente queda pendiente: el proveedor de mensajería no está integrado en el MVP."
+    ),
+    dependencies=[Depends(requiere_rol(ROL_RECEPCION, ROL_ADMINISTRADOR))],
+)
+def cerrar_orden(
+    idOrden: str,  # noqa: N803  (el contrato usa camelCase en la ruta)
+    body: OrdenCerrar,
+    servicio: CierreOrdenService = Depends(get_cierre_service),
+):
+    r = servicio.cerrar(idOrden, body.model_dump())
+    orden, factura = r["orden"], r["factura"]
+    data = OrdenCerrada(
+        id_orden=orden.id_orden,
+        estado=orden.estado,
+        fecha_cierre=orden.fecha_cierre,
+        totales={
+            "mano_obra": factura.mano_obra,
+            "repuestos": factura.repuestos,
+            "subtotal": factura.subtotal,
+            "impuestos": factura.impuestos,
+            "descuentos": factura.descuentos,
+            "total": factura.total,
+        },
+        id_factura=factura.id_factura,
+        notificacion_cliente=r["notificacion"],
+    ).model_dump(by_alias=True)
+    return envelope(success=True, message="Orden de servicio cerrada y factura generada correctamente", data=data)

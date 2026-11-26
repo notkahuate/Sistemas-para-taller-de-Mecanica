@@ -1,8 +1,10 @@
 """Repositorio de actividades de mantenimiento: único lugar que lee y escribe la tabla actividades_mantenimiento."""
+from decimal import Decimal
+
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.domain.entities.actividad_mantenimiento import ActividadMantenimiento, generar_id_actividad
+from app.domain.entities.actividad_mantenimiento import ESTADO_COMPLETADA, ActividadMantenimiento, generar_id_actividad
 from app.domain.interfaces.actividad_mantenimiento_repository import IActividadMantenimientoRepository
 from app.domain.models.actividad_mantenimiento import ActividadMantenimientoModel
 
@@ -64,3 +66,19 @@ class ActividadMantenimientoRepository(IActividadMantenimientoRepository):
             raise
         self.db.refresh(modelo)
         return a_entidad(modelo)
+
+    def contar_completadas(self, id_orden: str) -> int:
+        consulta = select(func.count()).where(
+            ActividadMantenimientoModel.id_orden == id_orden,
+            ActividadMantenimientoModel.estado == ESTADO_COMPLETADA,
+        )
+        return self.db.scalar(consulta) or 0
+
+    def total_mano_obra(self, id_orden: str) -> Decimal:
+        filas = self.db.execute(
+            select(ActividadMantenimientoModel.minutos, ActividadMantenimientoModel.tarifa_horaria).where(
+                ActividadMantenimientoModel.id_orden == id_orden,
+                ActividadMantenimientoModel.minutos.is_not(None),
+            )
+        ).all()
+        return sum((Decimal(m) * Decimal(t) / Decimal(60) for m, t in filas), Decimal("0"))
