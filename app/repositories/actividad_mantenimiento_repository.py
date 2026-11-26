@@ -17,6 +17,9 @@ def a_entidad(m: ActividadMantenimientoModel) -> ActividadMantenimiento:
         observaciones=m.observaciones,
         hora_inicio=m.hora_inicio,
         hora_fin=m.hora_fin,
+        minutos=m.minutos,
+        tarifa_horaria=m.tarifa_horaria,
+        valor_mano_obra=m.valor_mano_obra,
     )
 
 
@@ -46,3 +49,18 @@ class ActividadMantenimientoRepository(IActividadMantenimientoRepository):
             select(ActividadMantenimientoModel).where(ActividadMantenimientoModel.id_actividad == id_actividad)
         )
         return a_entidad(modelo) if modelo else None
+
+    def registrar_mano_obra(self, id_actividad: str, datos: dict) -> ActividadMantenimiento:
+        """Guarda horaInicio, horaFin, minutos, tarifa y valor de mano de obra de la actividad."""
+        modelo = self.db.scalar(
+            select(ActividadMantenimientoModel).where(ActividadMantenimientoModel.id_actividad == id_actividad)
+        )
+        try:
+            for campo, valor in datos.items():
+                setattr(modelo, campo, valor)
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
+        self.db.refresh(modelo)
+        return a_entidad(modelo)

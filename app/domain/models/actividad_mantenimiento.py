@@ -1,7 +1,8 @@
 """Modelo de base de datos de actividades de mantenimiento (tabla actividades_mantenimiento)."""
 from datetime import datetime
+from decimal import Decimal
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String
+from sqlalchemy import DateTime, ForeignKey, Integer, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -19,3 +20,7 @@ class ActividadMantenimientoModel(Base):
     observaciones: Mapped[str | None] = mapped_column(String(500), nullable=True)
     hora_inicio: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     hora_fin: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # HU-030: mano de obra calculada con la tarifa del técnico (alimenta HU-020/HU-061, RN-05).
+    minutos: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    tarifa_horaria: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
+    valor_mano_obra: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
