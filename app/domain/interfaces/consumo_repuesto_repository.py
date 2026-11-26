@@ -1,5 +1,6 @@
 """Contrato del repositorio de repuestos consumidos en órdenes."""
 from abc import ABC, abstractmethod
+from decimal import Decimal
 
 from app.domain.entities.consumo_repuesto import ConsumoRepuesto
 
@@ -11,3 +12,7 @@ class IConsumoRepuestoRepository(ABC):
 
     @abstractmethod
     def contar_por_orden(self, id_orden: str) -> int: ...
+
+    @abstractmethod
+    def total_repuestos(self, id_orden: str) -> Decimal:
+        """Suma de cantidad * precioUnitario de los repuestos consumidos en la orden (HU-027)."""
