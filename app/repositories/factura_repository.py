@@ -1,8 +1,8 @@
-"""Repositorio de facturas: único lugar que lee la tabla facturas."""
+"""Repositorio de facturas: único lugar que lee y escribe la tabla facturas."""
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.domain.entities.factura import ESTADO_ANULADA, Factura
+from app.domain.entities.factura import ESTADO_ANULADA, Factura, generar_id_factura
 from app.domain.interfaces.factura_repository import IFacturaRepository
 from app.domain.models.factura import FacturaModel
 
@@ -34,3 +34,16 @@ class FacturaRepository(IFacturaRepository):
             FacturaModel.id_orden == id_orden, FacturaModel.estado != ESTADO_ANULADA
         )
         return self.db.scalar(consulta) is not None
+
+    def crear(self, datos: dict) -> Factura:
+        modelo = FacturaModel(**datos)
+        self.db.add(modelo)
+        try:
+            self.db.flush()  # obtiene la secuencia para armar el idFactura
+            modelo.id_factura = generar_id_factura(modelo.secuencia)
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
+        self.db.refresh(modelo)
+        return a_entidad(modelo)
