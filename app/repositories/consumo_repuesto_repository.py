@@ -58,3 +58,27 @@ class ConsumoRepuestoRepository(IConsumoRepuestoRepository):
             func.coalesce(func.sum(ConsumoRepuestoModel.cantidad * ConsumoRepuestoModel.precio_unitario), 0)
         ).where(ConsumoRepuestoModel.id_orden == id_orden)
         return Decimal(str(self.db.scalar(consulta)))
+
+    def listar_por_orden(self, id_orden: str) -> list[ConsumoRepuesto]:
+        consulta = (
+            select(ConsumoRepuestoModel, MovimientoInventarioModel.stock_resultante)
+            .join(MovimientoInventarioModel, MovimientoInventarioModel.id_movimiento == ConsumoRepuestoModel.id_movimiento)
+            .where(ConsumoRepuestoModel.id_orden == id_orden)
+            .order_by(ConsumoRepuestoModel.secuencia)
+        )
+        return [
+            ConsumoRepuesto(
+                id_consumo=m.id_consumo,
+                id_orden=m.id_orden,
+                id_actividad=m.id_actividad,
+                id_repuesto=m.id_repuesto,
+                referencia=m.referencia,
+                cantidad=m.cantidad,
+                precio_unitario=m.precio_unitario,
+                id_movimiento=m.id_movimiento,
+                stock_resultante=stock,
+                usuario=m.usuario,
+                fecha=m.fecha,
+            )
+            for m, stock in self.db.execute(consulta).all()
+        ]

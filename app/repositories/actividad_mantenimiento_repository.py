@@ -82,3 +82,11 @@ class ActividadMantenimientoRepository(IActividadMantenimientoRepository):
             )
         ).all()
         return sum((Decimal(m) * Decimal(t) / Decimal(60) for m, t in filas), Decimal("0"))
+
+    def listar_por_orden(self, id_orden: str) -> list[ActividadMantenimiento]:
+        consulta = (
+            select(ActividadMantenimientoModel)
+            .where(ActividadMantenimientoModel.id_orden == id_orden)
+            .order_by(ActividadMantenimientoModel.secuencia)
+        )
+        return [a_entidad(m) for m in self.db.scalars(consulta)]

@@ -12,3 +12,6 @@ class IFacturaRepository(ABC):
     @abstractmethod
     def crear(self, datos: dict) -> Factura:
         """Persiste la factura y le asigna su idFactura (FAC-NNNN)."""
+
+    @abstractmethod
+    def obtener_por_id(self, id_factura: str) -> Factura | None: ...
