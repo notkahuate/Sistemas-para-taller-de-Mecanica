@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from app.domain import models as _modelos  # noqa: F401  (registra las tablas en Base.metadata)
-from app.api.routers import actividades, auth, clientes, facturas, health, inventario, motocicletas, ordenes_servicio, repuestos, tecnicos
+from app.api.routers import actividades, auth, clientes, facturas, health, inventario, motocicletas, ordenes_servicio, pagos, repuestos, tecnicos
 from app.core.config import settings
 from app.core.database import Base, SessionLocal, engine
 from app.core.error_handlers import registrar_manejadores
@@ -39,3 +39,4 @@ app.include_router(tecnicos.router)
 app.include_router(repuestos.router)
 app.include_router(inventario.router)
 app.include_router(facturas.router)
+app.include_router(pagos.router)
