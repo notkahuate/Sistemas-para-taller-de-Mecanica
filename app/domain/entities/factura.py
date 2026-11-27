@@ -1,4 +1,5 @@
 """Entidad Factura de servicio y cálculo de totales (FUN-61, invocada desde FUN-20)."""
+import re
 from dataclasses import dataclass
 from datetime import datetime
 from decimal import ROUND_HALF_UP, Decimal
@@ -7,6 +8,7 @@ ESTADO_EMITIDA = "emitida"
 ESTADO_ANULADA = "anulada"
 IVA = Decimal("0.19")  # IVA 19% fijo sobre subtotal - descuentos
 CENTAVOS = Decimal("0.01")
+ID_FACTURA_RE = re.compile(r"^FAC-\d{4}$")
 
 
 @dataclass

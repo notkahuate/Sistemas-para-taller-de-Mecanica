@@ -1,7 +1,7 @@
-"""Caso de uso HU-061 Generar factura de servicio (RN-05, RN-11)."""
+"""Casos de uso de facturación: HU-061 Generar factura de servicio y HU-062 Consultar factura."""
 from app.core.responses import ahora_bogota
 from app.domain.entities.cliente import CORREO_RE
-from app.domain.entities.factura import ESTADO_EMITIDA, Factura, calcular_totales
+from app.domain.entities.factura import ESTADO_EMITIDA, ID_FACTURA_RE, Factura, calcular_totales
 from app.domain.entities.orden_servicio import ESTADO_FINALIZADA, ID_ORDEN_RE
 from app.domain.exceptions.errors import FormatoInvalidoError, NoEncontradoError, ReglaNegocioError
 from app.domain.interfaces.actividad_mantenimiento_repository import IActividadMantenimientoRepository
@@ -11,6 +11,8 @@ from app.domain.interfaces.orden_servicio_repository import IOrdenServicioReposi
 
 MSG_DATOS_INVALIDOS = "No fue posible completar «Generar factura de servicio»: los datos enviados no son válidos."
 MSG_REGLA_NEGOCIO = "No fue posible completar «Generar factura de servicio»: la operación viola una regla de negocio."
+MSG_CONSULTA_INVALIDA = "No fue posible completar «Consultar factura»: los datos enviados no son válidos."
+MSG_CONSULTA_NO_EXISTE = "No fue posible completar «Consultar factura»: no existe el recurso indicado."
 
 
 class FacturaService:
@@ -59,3 +61,20 @@ class FacturaService:
                 "fecha_emision": ahora_bogota(),
             }
         )
+
+    def consultar(self, id_factura: str) -> dict:
+        if not ID_FACTURA_RE.match(id_factura):
+            raise FormatoInvalidoError(MSG_CONSULTA_INVALIDA, "IdFactura mal formado FAC-NNNN", "request")
+        factura = self.facturas.obtener_por_id(id_factura)
+        if factura is None:
+            raise NoEncontradoError("Factura inexistente", "idFactura", MSG_CONSULTA_NO_EXISTE)
+
+        # RN-05: el detalle muestra lo realmente ejecutado y cobrado en la orden:
+        # actividades con tiempo registrado (HU-030) y repuestos consumidos (HU-027).
+        mano_obra = [a for a in self.actividades.listar_por_orden(factura.id_orden) if a.minutos is not None]
+        return {
+            "factura": factura,
+            "mano_obra": mano_obra,
+            "repuestos": self.consumos.listar_por_orden(factura.id_orden),
+            "pagos": [],  # los pagos se registran en HU-066, que aún no existe
+        }

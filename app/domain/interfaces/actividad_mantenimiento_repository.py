@@ -24,3 +24,7 @@ class IActividadMantenimientoRepository(ABC):
     @abstractmethod
     def total_mano_obra(self, id_orden: str) -> Decimal:
         """Suma de minutos * tarifaHoraria / 60 de las actividades de la orden (HU-030)."""
+
+    @abstractmethod
+    def listar_por_orden(self, id_orden: str) -> list[ActividadMantenimiento]:
+        """Actividades de la orden en el orden en que se registraron."""

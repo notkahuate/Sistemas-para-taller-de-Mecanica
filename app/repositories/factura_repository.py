@@ -47,3 +47,7 @@ class FacturaRepository(IFacturaRepository):
             raise
         self.db.refresh(modelo)
         return a_entidad(modelo)
+
+    def obtener_por_id(self, id_factura: str) -> Factura | None:
+        modelo = self.db.scalar(select(FacturaModel).where(FacturaModel.id_factura == id_factura))
+        return a_entidad(modelo) if modelo else None
