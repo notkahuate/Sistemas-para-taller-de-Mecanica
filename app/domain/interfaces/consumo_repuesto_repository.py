@@ -16,3 +16,7 @@ class IConsumoRepuestoRepository(ABC):
     @abstractmethod
     def total_repuestos(self, id_orden: str) -> Decimal:
         """Suma de cantidad * precioUnitario de los repuestos consumidos en la orden (HU-027)."""
+
+    @abstractmethod
+    def listar_por_orden(self, id_orden: str) -> list[ConsumoRepuesto]:
+        """Repuestos consumidos en la orden en el orden en que se registraron."""
