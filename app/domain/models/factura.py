@@ -23,5 +23,5 @@ class FacturaModel(Base):
     impuestos: Mapped[Decimal] = mapped_column(Numeric(14, 2))
     total: Mapped[Decimal] = mapped_column(Numeric(14, 2))
     saldo_pendiente: Mapped[Decimal] = mapped_column(Numeric(14, 2))
-    estado: Mapped[str] = mapped_column(String(10))
+    estado: Mapped[str] = mapped_column(String(15))  # emitida, pagada_parcial, pagada o anulada
     fecha_emision: Mapped[datetime] = mapped_column(DateTime(timezone=True))

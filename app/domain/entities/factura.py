@@ -6,6 +6,8 @@ from decimal import ROUND_HALF_UP, Decimal
 
 ESTADO_EMITIDA = "emitida"
 ESTADO_ANULADA = "anulada"
+ESTADO_PAGADA_PARCIAL = "pagada_parcial"
+ESTADO_PAGADA = "pagada"
 IVA = Decimal("0.19")  # IVA 19% fijo sobre subtotal - descuentos
 CENTAVOS = Decimal("0.01")
 ID_FACTURA_RE = re.compile(r"^FAC-\d{4}$")
@@ -52,3 +54,12 @@ def calcular_totales(mano_obra: Decimal, repuestos: Decimal, descuentos: Decimal
 def generar_id_factura(secuencia: int) -> str:
     """El idFactura lo genera el sistema: prefijo FAC- y secuencia de 4 dígitos."""
     return f"FAC-{secuencia:04d}"
+
+
+def aplicar_pago(saldo_pendiente: Decimal, valor: Decimal) -> tuple[Decimal, str]:
+    """RN-11: el pago reduce el saldo. Si lo deja en cero la factura queda pagada; si no, pagada_parcial.
+
+    Quien llama debe verificar antes que valor <= saldo_pendiente.
+    """
+    nuevo_saldo = redondear(saldo_pendiente - valor)
+    return nuevo_saldo, ESTADO_PAGADA if nuevo_saldo == 0 else ESTADO_PAGADA_PARCIAL

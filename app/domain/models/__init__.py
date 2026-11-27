@@ -7,6 +7,7 @@ from app.domain.models.factura import FacturaModel  # noqa: F401
 from app.domain.models.motocicleta import MotocicletaModel  # noqa: F401
 from app.domain.models.movimiento_inventario import MovimientoInventarioModel  # noqa: F401
 from app.domain.models.orden_servicio import OrdenServicioModel  # noqa: F401
+from app.domain.models.pago_cliente import PagoClienteModel  # noqa: F401
 from app.domain.models.repuesto import RepuestoModel  # noqa: F401
 from app.domain.models.tecnico import TecnicoModel  # noqa: F401
 from app.domain.models.usuario import UsuarioModel  # noqa: F401
